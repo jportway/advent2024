@@ -57,7 +57,12 @@ case class TextMatrix(contents: IndexedSeq[String]) {
 
     def value: Char = contents(y)(x)
 
+    def set(value: Char): TextMatrix = TextMatrix(contents.updated(y, contents(y).updated(x, value)))
+
   }
+
+  def apply(x: Int, y: Int): Location                        = Location(x, y)
+  def equivalentLocation(pos: TextMatrix#Location): Location = Location(pos.x, pos.y)
 
   /** all valid locations in the matrix */
   def locations: Seq[ValidLocation] = {
@@ -81,5 +86,7 @@ case class TextMatrix(contents: IndexedSeq[String]) {
       else false
     }
   }
+
+  def find(test: (Option[Char]) => Boolean): Seq[ValidLocation] = locations.filter(loc => test(loc.content))
 
 }

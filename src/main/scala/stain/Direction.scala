@@ -10,6 +10,9 @@ case class Direction(x: Int, y: Int) {
 
   def opposite: Direction = Direction(-x, -y)
   def unary_- : Direction = opposite
+  
+  def turnRight: Direction = Direction(-y, x)
+  def turnLeft: Direction = Direction(y, -x)
 
 }
 
