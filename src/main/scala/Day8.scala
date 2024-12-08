@@ -9,12 +9,12 @@ object Day8 {
   val locs  = ta.find(x => x.contains('0'))
 
   def findAntiNodes(pair: List[ta.ValidLocation]): Seq[ta.ValidLocation] = {
-    val a     = pair(0)
-    val b     = pair(1)
-    val diff  = a.vectorTo(b)
-    val node1 = a + diff
-    val node2 = b - diff
-    Seq(node1, node2).collect { case a: ta.ValidLocation => a }
+    val a        = pair(0)
+    val b        = pair(1)
+    val diff     = a.vectorTo(b)
+    val forward  = List.unfold(a)(loc => (loc + diff).toOption.map(newLoc => (newLoc, newLoc)))
+    val backward = List.unfold(b)(loc => (loc - diff).toOption.map(newLoc => (newLoc, newLoc)))
+    pair ++ forward ++ backward
   }
 
   @main
