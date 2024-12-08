@@ -1,8 +1,9 @@
-import scala.annotation.tailrec
-import cats.syntax.all
-import cats.instances.all
+import scala.concurrent.Await
+import scala.concurrent.Future
 
 object Day7 {
+
+  given ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
   @main
   def day7Main(): Unit =
@@ -14,27 +15,47 @@ object Day7 {
       nums   = parts(1).split(" ").map(_.trim).filter(_.nonEmpty).map(_.toLong).toVector
     } yield (target, nums)
 
-    def doOperations(opCode: Long, numList: Vector[Long]): Long = {
-      val (result, _) = numList.tail.foldLeft((numList.head, opCode)) { case ((acc, op: Long), v) =>
-        val operator = op & 1
-        val nextOp   = op >>> 1
-        if (operator == 0)
-          (acc + v, nextOp)
-        else
-          (acc * v, nextOp)
+    def doOperations(ops: List[Char], numList: Vector[Long]): Long = {
+      val (result, _) = numList.tail.foldLeft((numList.head, ops)) { case ((acc, op: List[Char]), v) =>
+        val operator  = op.head
+        val remaining = op.tail
+        operator match {
+          case '+' => (acc + v, remaining)
+          case '*' => (acc * v, remaining)
+          case '|' => ((acc.toString + v.toString).toLong, remaining)
+        }
       }
       result
     }
 
-    val res = puzzles.map { case (target, nums) =>
-      val max = BigDecimal(2L).pow(nums.length - 1).toLongExact // number of possible variations
-      val str = for {
-        i <- 0L until max // all variations
-        v  = doOperations(i, nums)
-        if v == target
-      } yield v
-      if (str.nonEmpty) target else 0
-    }.sum
+    // this is incredibly shit and i should do this lazily with a fold, but needs must...
+    def recursiveBuild(depth: Int, values: List[Char]): List[List[Char]] = {
+      if (depth == 0) {
+        values.map(List(_))
+      } else {
+        recursiveBuild(depth - 1, values).flatMap(x => values.map(y => y :: x)) // not tailrec, but it's ok
+      }
+    }
+
+    val longestSequence = puzzles.maxBy { case (_, nums) => nums.length }._2.length
+    println("building cache")
+    val cache = (for {
+      i    <- 2 to longestSequence
+      opSeq = recursiveBuild(i - 1, List('+', '*', '|'))
+    } yield i -> opSeq).toMap
+
+    println("calculating puzzles")
+    val futures = Future
+      .traverse(puzzles) { case (target, nums) =>
+        Future {
+          val allVariants = cache(nums.length)
+          val str = allVariants.find{ops =>
+            doOperations(ops, nums) == target
+          }
+          if (str.nonEmpty) target else 0
+        }
+      }
+    val res = Await.result(futures, scala.concurrent.duration.Duration.Inf).sum
 
     println(s"sum = $res")
 
