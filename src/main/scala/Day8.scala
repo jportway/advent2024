@@ -6,7 +6,6 @@ object Day8 {
   val ta = TextMatrix.apply(os.read.lines(os.pwd / "input" / "day8.txt"))
 
   val freqs = ta.locations.map(_.content).filterNot(_.contains('.')).map(_.get).distinct.toList
-  val locs  = ta.find(x => x.contains('0'))
 
   def findResonantAntiNodes(pair: List[ta.ValidLocation]): Seq[ta.ValidLocation] = {
     val a        = pair(0)
