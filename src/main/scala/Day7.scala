@@ -28,32 +28,23 @@ object Day7 {
       result
     }
 
-    // this is incredibly shit and i should do this lazily with a fold, but needs must...
-    /** builds a list of every possible sequence of operators */
-    def recursiveBuild(depth: Int, values: List[Char]): List[List[Char]] = {
-      if (depth == 0) {
-        values.map(List(_))
-      } else {
-        recursiveBuild(depth - 1, values).flatMap(x => values.map(y => y :: x)) // not tailrec, but it's ok
+    /** lazily produce every possible combination of operators */
+    def allSequencesLazy(n: Int, ops: List[Char]): LazyList[List[Char]] = {
+      val lazyOps = ops.to(LazyList)
+      (1 to n).foldLeft(LazyList(List.empty[Char])) { (acc, _) =>
+        for {
+          seq <- acc
+          op  <- lazyOps
+        } yield seq :+ op
       }
     }
 
-    def buildOperationCache(longestSequence: Int, operations: List[Char]): Map[Int, List[List[Char]]] = {
-      println("building cache")
-      (for {
-        i    <- 2 to longestSequence
-        opSeq = recursiveBuild(i - 1, operations)
-      } yield i -> opSeq).toMap
-    }
-
     def solvePuzzles(puzzles: Seq[(Long, Vector[Long])], ops: List[Char]): Long = {
-      val longestSequenceInInput = puzzles.maxBy { case (_, nums) => nums.length }._2.length
-      val cache                  = buildOperationCache(longestSequenceInInput, ops)
       println("calculating puzzles")
       val futures = Future
         .traverse(puzzles) { case (target, nums) =>
           Future {
-            val allVariants = cache(nums.length)
+            val allVariants = allSequencesLazy(nums.length, ops)
             val str = allVariants.find { ops =>
               doOperations(ops, nums) == target
             }
