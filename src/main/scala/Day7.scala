@@ -29,6 +29,7 @@ object Day7 {
     }
 
     // this is incredibly shit and i should do this lazily with a fold, but needs must...
+    /** builds a list of every possible sequence of operators */
     def recursiveBuild(depth: Int, values: List[Char]): List[List[Char]] = {
       if (depth == 0) {
         values.map(List(_))
