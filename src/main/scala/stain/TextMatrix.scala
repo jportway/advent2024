@@ -101,6 +101,12 @@ case class TextMatrix(contents: IndexedSeq[String]) {
 
   def contents(x: Int, y: Int): Char = contents(y)(x)
 
+  def update(x: Int, y: Int, value: Char): TextMatrix = TextMatrix(contents.updated(y, contents(y).updated(x, value)))
+  def update(pos: Position, value: Char): TextMatrix  = update(pos.x, pos.y, value)
+  def update(values: List[(Position, Char)]): TextMatrix = values.foldLeft(this) { case (acc, (pos, value)) =>
+    acc.update(pos, value)
+  }
+
   /** checks if the character at the given location matches the given character will always return false if the location
     * is invalid
     */

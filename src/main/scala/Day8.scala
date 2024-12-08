@@ -35,25 +35,23 @@ object Day8 {
     antiNodes.distinct
   }
 
-  private def printViz(partA: List[ta.ValidCell]): Unit = {
-    val viz = partA.foldLeft(ta) { case (acc, n) =>
-      acc(n).toOption.map(_.set('#')).getOrElse(acc)
-    }
+  private def printVisualization(antiNodes: List[ta.ValidCell]): Unit = {
+    val updates = antiNodes.map(pos => pos -> '#')
+    val viz     = ta.update(updates)
     viz.contents.foreach(println)
   }
 
   @main
   def day8main(): Unit = {
-//    println(s"frequencies:$freqs")
 
     val partA = findAll(findAntiNodes)
-    printViz(partA)
+    printVisualization(partA)
     println(s"part A :${partA.length}")
 
     println("\n\n\n\n")
 
     val partB = findAll(findResonantAntiNodes)
-    printViz(partB)
+    printVisualization(partB)
     println(s"part B :${partB.length}")
   }
 
