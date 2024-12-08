@@ -35,19 +35,25 @@ object Day8 {
     antiNodes.distinct
   }
 
+  private def printViz(partA: List[ta.ValidLocation]): Unit = {
+    val viz = partA.foldLeft(ta) { case (acc, n) =>
+      acc.equivalentLocation(n).toOption.map(_.set('#')).getOrElse(acc)
+    }
+    viz.contents.foreach(println)
+  }
+
   @main
   def day8main(): Unit = {
 //    println(s"frequencies:$freqs")
 
     val partA = findAll(findAntiNodes)
+    printViz(partA)
     println(s"part A :${partA.length}")
 
-    val viz = partA.foldLeft(ta) { case (acc, n) =>
-      acc.equivalentLocation(n).toOption.map(_.set('#')).getOrElse(acc)
-    }
-    viz.contents.foreach(println)
+    println("\n\n\n\n")
 
     val partB = findAll(findResonantAntiNodes)
+    printViz(partB)
     println(s"part B :${partB.length}")
   }
 
