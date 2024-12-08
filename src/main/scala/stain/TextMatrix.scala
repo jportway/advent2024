@@ -27,6 +27,11 @@ case class TextMatrix(contents: IndexedSeq[String]) {
     @targetName("addDirection")
     def +(direction: Direction): Location = Location(x + direction.x, y + direction.y)
 
+    @targetName("subDirection")
+    def -(direction: Direction): Location = Location(x - direction.x, y - direction.y)
+
+    def vectorTo(other: Location): Direction = Direction(x - other.x, y - other.y)
+
   }
 
   object Location {
