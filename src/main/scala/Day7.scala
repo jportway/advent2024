@@ -1,6 +1,4 @@
-import scala.annotation.tailrec
-import cats.syntax.all
-import cats.instances.all
+import scala.concurrent.{Await, Future}
 
 object Day7 {
 
