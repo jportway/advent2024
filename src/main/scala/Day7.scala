@@ -8,7 +8,7 @@ object Day7 {
   @main
   def day7Main(): Unit =
     val lines = os.read.lines(os.pwd / "input" / "day7.txt")
-    val puzzles: Seq[(Long, Vector[Long])] = for {
+    val puzzles = for {
       line  <- lines
       parts  = line.split(":")
       target = parts.head.toLong
