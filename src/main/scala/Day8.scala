@@ -8,7 +8,7 @@ object Day8 {
   val freqs = ta.locations.map(_.content).filterNot(_.contains('.')).map(_.get).distinct.toList
   val locs  = ta.find(x => x.contains('0'))
 
-  def findAntiNodes(pair: List[ta.ValidLocation]): Seq[ta.ValidLocation] = {
+  def findResonantAntiNodes(pair: List[ta.ValidLocation]): Seq[ta.ValidLocation] = {
     val a        = pair(0)
     val b        = pair(1)
     val diff     = a.vectorTo(b)
@@ -17,26 +17,39 @@ object Day8 {
     pair ++ forward ++ backward
   }
 
-  @main
-  def day8main(): Unit = {
-    println(s"frequencies:$freqs")
+  def findAntiNodes(pair: List[ta.ValidLocation]): Seq[ta.ValidLocation] = {
+    val a     = pair(0)
+    val b     = pair(1)
+    val diff  = a.vectorTo(b)
+    val node1 = a + diff
+    val node2 = b - diff
+    Seq(node1, node2).collect { case a: ta.ValidLocation => a }
+  }
+
+  def findAll(findFunction: List[ta.ValidLocation] => Seq[ta.ValidLocation]) = {
     val antiNodes = for {
       f         <- freqs
       locs       = ta.find(_.contains(f)).toList
       pair      <- locs.combinations(2)
-      antiNodes <- findAntiNodes(pair)
+      antiNodes <- findFunction(pair)
     } yield antiNodes
-    val distinct = antiNodes.distinct
+    antiNodes.distinct
+  }
 
-    val viz = distinct.foldLeft(ta) { case (acc, n) =>
-      acc.equivalentLocation(n).toOption.map(_.set('#')).getOrElse(acc)
-    }
-    viz.contents.foreach(println)
+  @main
+  def day8main(): Unit = {
+//    println(s"frequencies:$freqs")
 
-    println(distinct)
-    println(distinct.length)
-    //    println(locs.toList)
-    println("done")
+    val partA = findAll(findAntiNodes)
+    println(s"part A :${partA.length}")
+
+//    val viz = partA.foldLeft(ta) { case (acc, n) =>
+//      acc.equivalentLocation(n).toOption.map(_.set('#')).getOrElse(acc)
+//    }
+//    viz.contents.foreach(println)
+
+    val partB = findAll(findResonantAntiNodes)
+    println(s"part B :${partB.length}")
   }
 
 }
