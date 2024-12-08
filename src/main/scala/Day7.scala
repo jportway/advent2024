@@ -1,5 +1,6 @@
-import scala.concurrent.Await
-import scala.concurrent.Future
+import scala.annotation.tailrec
+import cats.syntax.all
+import cats.instances.all
 
 object Day7 {
 
