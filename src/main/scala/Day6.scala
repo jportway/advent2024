@@ -1,4 +1,5 @@
 import stain.Direction
+import stain.Location
 import stain.TextMatrix
 import cats.*
 import cats.given
@@ -24,19 +25,26 @@ object Day6 {
   @main
   def Day6B(): Unit = {
     // just brute force it, it can't be that bad
+    val start = System.currentTimeMillis()
     val f = Future.traverse(in.locations) { loc =>
-      val newMaze            = loc.set('#') // put a barrier in current location
-      val equivalentStart    = newMaze.equivalentLocation(startPos)
+      val newMaze            = loc.set('#')                   // put a barrier in current location
+      val equivalentStart    = newMaze(startPos).toOption.get // i know it's valid
       val x: Future[Boolean] = Future(walk(newMaze, equivalentStart, Direction.up)).map(_.looped)
       x
     }
     val loops: Seq[Boolean] = Await.result(f, scala.concurrent.duration.Duration.Inf)
     val count               = loops.count(identity)
+    val end                 = System.currentTimeMillis()
     println(s"number of loops: $count")
+    println(s"time :${end - start}")
   }
 
   @tailrec
-  private def step(maze: TextMatrix, loc: maze.Location, dir: Direction): (loc: maze.Location, dir: Direction) = {
+  private def step(
+      maze: TextMatrix,
+      loc: maze.ConcreteLocation,
+      dir: Direction
+  ): (loc: maze.ConcreteLocation, dir: Direction) = {
     val newLoc = loc + dir
     if !newLoc.content.contains('#') then (newLoc, dir)
     else step(maze, loc, dir.turnRight)
@@ -44,21 +52,21 @@ object Day6 {
 
   private def walk(
       maze: TextMatrix,
-      loc: maze.Location,
+      loc: maze.ValidLocation,
       dir: Direction
-  ): (steps: List[(maze.Location, Direction)], looped: Boolean) = {
+  ): (steps: List[(maze.ValidLocation, Direction)], looped: Boolean) = {
 
     @tailrec
     def _walk(
-        currentLoc: maze.Location,
+        currentLoc: maze.ValidLocation,
         currentDir: Direction,
-        acc: List[(maze.Location, Direction)]
-    ): (List[(maze.Location, Direction)], Boolean) = {
+        acc: List[(maze.ValidLocation, Direction)]
+    ): (List[(maze.ValidLocation, Direction)], Boolean) = {
       val nextStep = step(maze, currentLoc, currentDir)
       nextStep match {
-        case (newLoc, _) if !newLoc.isValid => (((currentLoc, currentDir) :: acc).reverse, false) // walked out
-        case step if acc.contains(step)     => (((currentLoc, currentDir) :: acc).reverse, true)  // loop
-        case (newLoc, newDir)               => _walk(newLoc, newDir, (currentLoc, currentDir) :: acc)
+        case step if acc.contains(step)           => (((currentLoc, currentDir) :: acc).reverse, true)      // loop
+        case (newLoc: maze.ValidLocation, newDir) => _walk(newLoc, newDir, (currentLoc, currentDir) :: acc) // valid next step
+        case _                                    => (((currentLoc, currentDir) :: acc).reverse, false)     // walked out
       }
     }
     _walk(loc, dir, List.empty)

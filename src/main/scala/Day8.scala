@@ -37,7 +37,7 @@ object Day8 {
 
   private def printViz(partA: List[ta.ValidLocation]): Unit = {
     val viz = partA.foldLeft(ta) { case (acc, n) =>
-      acc.equivalentLocation(n).toOption.map(_.set('#')).getOrElse(acc)
+      acc(n).toOption.map(_.set('#')).getOrElse(acc)
     }
     viz.contents.foreach(println)
   }
