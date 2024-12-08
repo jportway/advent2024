@@ -1,6 +1,5 @@
-import scala.annotation.tailrec
-import cats.syntax.all
-import cats.instances.all
+import scala.concurrent.Await
+import scala.concurrent.Future
 
 object Day7 {
 
@@ -9,7 +8,7 @@ object Day7 {
   @main
   def day7Main(): Unit =
     val lines = os.read.lines(os.pwd / "input" / "day7.txt")
-    val puzzles = for {
+    val puzzles: Seq[(Long, Vector[Long])] = for {
       line  <- lines
       parts  = line.split(":")
       target = parts.head.toLong
@@ -38,26 +37,35 @@ object Day7 {
       }
     }
 
-    val longestSequence = puzzles.maxBy { case (_, nums) => nums.length }._2.length
-    println("building cache")
-    val cache = (for {
-      i    <- 2 to longestSequence
-      opSeq = recursiveBuild(i - 1, List('+', '*', '|'))
-    } yield i -> opSeq).toMap
+    def buildOperationCache(longestSequence: Int, operations: List[Char]): Map[Int, List[List[Char]]] = {
+      println("building cache")
+      (for {
+        i    <- 2 to longestSequence
+        opSeq = recursiveBuild(i - 1, operations)
+      } yield i -> opSeq).toMap
+    }
 
-    println("calculating puzzles")
-    val futures = Future
-      .traverse(puzzles) { case (target, nums) =>
-        Future {
-          val allVariants = cache(nums.length)
-          val str = allVariants.find{ops =>
-            doOperations(ops, nums) == target
+    def solvePuzzles(puzzles: Seq[(Long, Vector[Long])], ops: List[Char]): Long = {
+      val longestSequenceInInput = puzzles.maxBy { case (_, nums) => nums.length }._2.length
+      val cache                  = buildOperationCache(longestSequenceInInput, ops)
+      println("calculating puzzles")
+      val futures = Future
+        .traverse(puzzles) { case (target, nums) =>
+          Future {
+            val allVariants = cache(nums.length)
+            val str = allVariants.find { ops =>
+              doOperations(ops, nums) == target
+            }
+            if (str.nonEmpty) target else 0
           }
-          if (str.nonEmpty) target else 0
         }
-      }
-    val res = Await.result(futures, scala.concurrent.duration.Duration.Inf).sum
+      Await.result(futures, scala.concurrent.duration.Duration.Inf).sum
+    }
 
-    println(s"sum = $res")
+    val answerA = solvePuzzles(puzzles = puzzles, ops = List('+', '*'))
+    println(s"answer A = $answerA")
+
+    val answerB = solvePuzzles(puzzles = puzzles, ops = List('+', '*', '|'))
+    println(s"answer B = $answerB")
 
 }
