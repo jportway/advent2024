@@ -1,5 +1,5 @@
 import stain.Direction
-import stain.Location
+import stain.Position
 import stain.TextMatrix
 import cats.*
 import cats.given
@@ -42,9 +42,9 @@ object Day6 {
   @tailrec
   private def step(
       maze: TextMatrix,
-      loc: maze.ConcreteLocation,
+      loc: maze.Cell,
       dir: Direction
-  ): (loc: maze.ConcreteLocation, dir: Direction) = {
+  ): (loc: maze.Cell, dir: Direction) = {
     val newLoc = loc + dir
     if !newLoc.content.contains('#') then (newLoc, dir)
     else step(maze, loc, dir.turnRight)
@@ -52,21 +52,21 @@ object Day6 {
 
   private def walk(
       maze: TextMatrix,
-      loc: maze.ValidLocation,
+      loc: maze.ValidCell,
       dir: Direction
-  ): (steps: List[(maze.ValidLocation, Direction)], looped: Boolean) = {
+  ): (steps: List[(maze.ValidCell, Direction)], looped: Boolean) = {
 
     @tailrec
     def _walk(
-        currentLoc: maze.ValidLocation,
+        currentLoc: maze.ValidCell,
         currentDir: Direction,
-        acc: List[(maze.ValidLocation, Direction)]
-    ): (List[(maze.ValidLocation, Direction)], Boolean) = {
+        acc: List[(maze.ValidCell, Direction)]
+    ): (List[(maze.ValidCell, Direction)], Boolean) = {
       val nextStep = step(maze, currentLoc, currentDir)
       nextStep match {
-        case step if acc.contains(step)           => (((currentLoc, currentDir) :: acc).reverse, true)      // loop
-        case (newLoc: maze.ValidLocation, newDir) => _walk(newLoc, newDir, (currentLoc, currentDir) :: acc) // valid next step
-        case _                                    => (((currentLoc, currentDir) :: acc).reverse, false)     // walked out
+        case step if acc.contains(step)       => (((currentLoc, currentDir) :: acc).reverse, true)      // loop
+        case (newLoc: maze.ValidCell, newDir) => _walk(newLoc, newDir, (currentLoc, currentDir) :: acc) // valid next step
+        case _                                => (((currentLoc, currentDir) :: acc).reverse, false)     // walked out
       }
     }
     _walk(loc, dir, List.empty)

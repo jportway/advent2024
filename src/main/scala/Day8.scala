@@ -7,7 +7,7 @@ object Day8 {
 
   val freqs = ta.locations.map(_.content).filterNot(_.contains('.')).map(_.get).distinct.toList
 
-  def findResonantAntiNodes(pair: List[ta.ValidLocation]): Seq[ta.ValidLocation] = {
+  def findResonantAntiNodes(pair: List[ta.ValidCell]): Seq[ta.ValidCell] = {
     val a        = pair(0)
     val b        = pair(1)
     val diff     = a.vectorTo(b)
@@ -16,16 +16,16 @@ object Day8 {
     pair ++ forward ++ backward
   }
 
-  def findAntiNodes(pair: List[ta.ValidLocation]): Seq[ta.ValidLocation] = {
+  def findAntiNodes(pair: List[ta.ValidCell]): Seq[ta.ValidCell] = {
     val a     = pair(0)
     val b     = pair(1)
     val diff  = a.vectorTo(b)
     val node1 = a + diff
     val node2 = b - diff
-    Seq(node1, node2).collect { case a: ta.ValidLocation => a }
+    Seq(node1, node2).collect { case a: ta.ValidCell => a }
   }
 
-  def findAll(findFunction: List[ta.ValidLocation] => Seq[ta.ValidLocation]) = {
+  def findAll(findFunction: List[ta.ValidCell] => Seq[ta.ValidCell]) = {
     val antiNodes = for {
       f         <- freqs
       locs       = ta.find(_.contains(f)).toList
@@ -35,7 +35,7 @@ object Day8 {
     antiNodes.distinct
   }
 
-  private def printViz(partA: List[ta.ValidLocation]): Unit = {
+  private def printViz(partA: List[ta.ValidCell]): Unit = {
     val viz = partA.foldLeft(ta) { case (acc, n) =>
       acc(n).toOption.map(_.set('#')).getOrElse(acc)
     }
