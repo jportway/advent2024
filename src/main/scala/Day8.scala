@@ -42,10 +42,10 @@ object Day8 {
     val partA = findAll(findAntiNodes)
     println(s"part A :${partA.length}")
 
-//    val viz = partA.foldLeft(ta) { case (acc, n) =>
-//      acc.equivalentLocation(n).toOption.map(_.set('#')).getOrElse(acc)
-//    }
-//    viz.contents.foreach(println)
+    val viz = partA.foldLeft(ta) { case (acc, n) =>
+      acc.equivalentLocation(n).toOption.map(_.set('#')).getOrElse(acc)
+    }
+    viz.contents.foreach(println)
 
     val partB = findAll(findResonantAntiNodes)
     println(s"part B :${partB.length}")
