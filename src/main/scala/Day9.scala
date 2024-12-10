@@ -10,6 +10,7 @@ object Day9 {
     def span: Int
     def isFile: Boolean
     def isFree: Boolean
+    def shrink(l: Int): Option[DiskChunk]
 
   }
 
@@ -25,15 +26,17 @@ object Day9 {
       }
     }
 
-    override def getId: Option[ID] = Some(id)
+    override def getId: Option[ID]                 = Some(id)
+    override def shrink(l: Int): Option[FileChunk] = Option.when(l < span)(this.copy(span = span - l))
 
   }
 
   case class FreeSpace(span: Int) extends DiskChunk {
 
-    def getId           = None
-    def isFile: Boolean = false
-    def isFree: Boolean = true
+    def getId                             = None
+    def isFile: Boolean                   = false
+    def isFree: Boolean                   = true
+    def shrink(l: Int): Option[FreeSpace] = Option.when(l < span)(FreeSpace(span - l))
 
   }
 
@@ -58,19 +61,12 @@ object Day9 {
               val filler     = supply.head
               val filledSpan = Math.min(spanToFill, filler.span)
               val fill       = filler.copy(span = filledSpan)
-              val newSupply = if (filledSpan < filler.span) { // still some left
-                (filler.copy(span = filler.span - filledSpan)) :: supply.tail
+              val newSupply  = filler.shrink(filledSpan).toList ++ supply.tail
+              val spaceLeft  = spc.shrink(filledSpan).toList // empty list if the space has been completely filled
+              val newRemainder = if (newSupply.head.sameFileAs(pending.head)) { // we're done
+                List(newSupply.head) // just have to copy any remaining from the current file
               } else {
-                supply.tail
-              }
-              val newRemainder = if (filledSpan < spanToFill) {
-                spc.copy(span = spanToFill - filledSpan) :: pending
-              } else {
-                if (newSupply.head.sameFileAs(pending.head)) { // we're done
-                  List(newSupply.head)                         // just have to copy any remaining from the current file
-                } else {
-                  pending
-                }
+                spaceLeft ++ pending
               }
               Some((fill, (newRemainder, newSupply)))
           }
@@ -78,7 +74,24 @@ object Day9 {
     }
   }
 
-  def defrag(layout: Vector[DiskChunk]): Vector[DiskChunk] = ???
+  def defrag(layout: List[DiskChunk]): List[DiskChunk] = {
+    val maxId = layout.map(_.getId.getOrElse(0)).max
+    (maxId to 0 by -1)
+      .foldLeft(layout) { case (acc: List[DiskChunk], id) =>
+        val (beforeMover: List[DiskChunk], afterMover: List[DiskChunk]) = acc.span(!_.getId.contains(id))
+
+        val mover: DiskChunk            = afterMover.head
+        val remnants: List[DiskChunk]   = afterMover.tail
+        val (beforeInsert, afterInsert) = beforeMover.span(x => x.isFile | x.span < mover.span)
+        afterInsert match {
+          case List() => acc // haven't found anywhere to move it so leave it where it is
+          case space :: afterSpace =>
+            val shrunk    = space.shrink(mover.span).toList // empty list if the space has disappeared otherwise a smaller space
+            val spaceLeft = FreeSpace(mover.span)           // the gap where the mover used to be
+            List.concat(beforeInsert, mover :: shrunk, afterSpace, spaceLeft :: remnants)
+        }
+      }
+  }
 
   /** find the first free space that can fit the given size */
   def findFirstFree(layout: Seq[DiskChunk], len: Int): Unit = {
@@ -104,6 +117,18 @@ object Day9 {
 
   @main
   def Day9main(): Unit = {
+    val input         = parse(os.read(os.pwd / "input" / "Day9.txt"))
+    val partAResult   = frag(input)
+    val partAChecksum = checksum(partAResult)
+    println(s"part A : $partAChecksum")
+
+    val partBResult   = defrag(input)
+    val partBChecksum = checksum(partBResult)
+    println(s"part B : $partBChecksum")
+  }
+
+  @main
+  def day9test(): Unit = {
     val testIn     = parse(os.read(os.pwd / "input" / "Day9test.txt"))
     val testResult = frag(testIn)
     println(testIn)
@@ -113,10 +138,9 @@ object Day9 {
     val chk = checksum(testResult)
     assert(chk == 1928)
 
-    val input         = parse(os.read(os.pwd / "input" / "Day9.txt"))
-    val partAResult   = frag(input)
-    val partAChecksum = checksum(partAResult)
-    println(s"part A : $partAChecksum")
+    val test2 = defrag(testIn)
+    println("\n\n\n" + viz(test2))
+    assert(viz(test2) == "00992111777.44.333....5555.6666.....8888..")
   }
 
 }
