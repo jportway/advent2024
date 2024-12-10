@@ -18,14 +18,12 @@ object Day9 {
 
     def isFile: Boolean = true
     def isFree: Boolean = false
-
     def sameFileAs(other: DiskChunk): Boolean = {
       other match {
         case o: FileChunk => o.id == this.id
         case _            => false
       }
     }
-
     override def getId: Option[ID]                 = Some(id)
     override def shrink(l: Int): Option[FileChunk] = Option.when(l < span)(this.copy(span = span - l))
 
@@ -62,11 +60,10 @@ object Day9 {
               val filledSpan = Math.min(spanToFill, filler.span)
               val fill       = filler.copy(span = filledSpan)
               val newSupply  = filler.shrink(filledSpan).toList ++ supply.tail
-              val spaceLeft  = spc.shrink(filledSpan).toList // empty list if the space has been completely filled
               val newRemainder = if (newSupply.head.sameFileAs(pending.head)) { // we're done
                 List(newSupply.head) // just have to copy any remaining from the current file
               } else {
-                spaceLeft ++ pending
+                spc.shrink(filledSpan).toList ++ pending
               }
               Some((fill, (newRemainder, newSupply)))
           }
@@ -78,10 +75,9 @@ object Day9 {
     val maxId = layout.map(_.getId.getOrElse(0)).max
     (maxId to 0 by -1)
       .foldLeft(layout) { case (acc: List[DiskChunk], id) =>
-        val (beforeMover: List[DiskChunk], afterMover: List[DiskChunk]) = acc.span(!_.getId.contains(id))
-
-        val mover: DiskChunk            = afterMover.head
-        val remnants: List[DiskChunk]   = afterMover.tail
+        val (beforeMover, afterMover)   = acc.span(!_.getId.contains(id))
+        val mover                       = afterMover.head
+        val remnants                    = afterMover.tail
         val (beforeInsert, afterInsert) = beforeMover.span(x => x.isFile | x.span < mover.span)
         afterInsert match {
           case List() => acc // haven't found anywhere to move it so leave it where it is
@@ -129,18 +125,19 @@ object Day9 {
 
   @main
   def day9test(): Unit = {
-    val testIn     = parse(os.read(os.pwd / "input" / "Day9test.txt"))
-    val testResult = frag(testIn)
+    val testIn = parse(os.read(os.pwd / "input" / "Day9test.txt"))
     println(testIn)
     println(viz(testIn))
+    val testResult = frag(testIn)
     println(viz(testResult))
     assert(viz(testResult) == "0099811188827773336446555566")
     val chk = checksum(testResult)
     assert(chk == 1928)
 
     val test2 = defrag(testIn)
-    println("\n\n\n" + viz(test2))
+    println("\n" + viz(test2))
     assert(viz(test2) == "00992111777.44.333....5555.6666.....8888..")
+    assert(checksum(test2) == 2858)
   }
 
 }
