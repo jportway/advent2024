@@ -28,7 +28,7 @@ object Day8 {
   def findAll(findFunction: List[ta.ValidCell] => Seq[ta.ValidCell]) = {
     val antiNodes = for {
       f         <- freqs
-      locs       = ta.find(_.contains(f)).toList
+      locs       = ta.find(_ == f).toList
       pair      <- locs.combinations(2)
       antiNodes <- findFunction(pair)
     } yield antiNodes

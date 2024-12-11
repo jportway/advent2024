@@ -24,6 +24,12 @@ trait Position {
 
   def vectorTo(other: Position): Direction = Direction(x - other.x, y - other.y)
 
+  def cardinalNeighbours: Vector[Position]
+
+  def diagonalNeighbours: Vector[Position]
+
+  def allNeighbours: Vector[Position]
+
 }
 
 /** a location that only indicates a position and isn't tied to a particular TextMatrix */
@@ -34,6 +40,12 @@ case class AbstractPosition(x: Int, y: Int) extends Position {
 
   @targetName("subDirection")
   override def -(direction: Direction): AbstractPosition = AbstractPosition(x - direction.x, y - direction.y)
+
+  override def cardinalNeighbours: Vector[Position] = Direction.cardinals.map(this + _)
+
+  override def diagonalNeighbours: Vector[Position] = Direction.diagonals.map(this + _)
+
+  override def allNeighbours: Vector[Position] = cardinalNeighbours ++ diagonalNeighbours
 
 }
 
@@ -48,11 +60,19 @@ case class TextMatrix(contents: IndexedSeq[String]) {
 
     def content: Option[Char] // the contents of the cell, if it's valid
 
+    def contains(test: Char) = content.contains(test)
+
     @targetName("addDirection")
     override def +(direction: Direction): Cell = TextMatrix.this(x + direction.x, y + direction.y)
 
     @targetName("subDirection")
     override def -(direction: Direction): Cell = TextMatrix.this(x - direction.x, y - direction.y)
+
+    override def cardinalNeighbours: Vector[Cell] = Direction.cardinals.map(this + _)
+
+    override def diagonalNeighbours: Vector[Cell] = Direction.diagonals.map(this + _)
+
+    override def allNeighbours: Vector[Cell] = cardinalNeighbours ++ diagonalNeighbours
 
   }
 
@@ -83,6 +103,7 @@ case class TextMatrix(contents: IndexedSeq[String]) {
   }
 
   def apply(x: Int, y: Int): Cell = if (valid(x, y)) ValidCell(x, y) else InvalidCell(x, y)
+
   def apply(pos: Position): Cell = pos match {
     case c: Cell     => c // it's already attached to this matrix
     case l: Position => this(l.x, l.y)
@@ -122,6 +143,6 @@ case class TextMatrix(contents: IndexedSeq[String]) {
     }
   }
 
-  def find(test: (Option[Char]) => Boolean): Seq[ValidCell] = locations.filter(loc => test(loc.content))
+  def find(test: Char => Boolean): Seq[ValidCell] = locations.filter(loc => test(loc.value))
 
 }

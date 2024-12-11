@@ -12,7 +12,7 @@ object Day6 {
   given ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
   val in       = TextMatrix(os.read.lines(os.pwd / "input" / "day6.txt"))
-  val startPos = in.find(_.exists(_ == '^')).head
+  val startPos = in.find(_ == '^').head
 
   @main
   def Day6Main(): Unit = {
