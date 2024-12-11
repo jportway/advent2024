@@ -6,19 +6,19 @@ object Day11 {
 
   type Cache = Map[(Stone, Depth), StoneCount]
 
-  def depthRecursion(number: Stone, depth: Depth, cache: Cache): (StoneCount, Cache) = {
+  def depthRecursion(stone: Stone, depth: Depth, cache: Cache): (StoneCount, Cache) = {
     if (depth == 0) (1L, cache)
     else {
-      val cached = cache.get((number, depth))
+      val cached = cache.get((stone, depth))
       cached match {
         case Some(count) => (count, cache)
         case None =>
-          val (result, subCache) = number match {
+          val (result, subCache) = stone match {
             case 0 => depthRecursion(1L, depth - 1, cache)
             case n if n.toString.length % 2 == 0 => stringSplit(n, depth, cache)
-            case _ => depthRecursion(number * 2024L, depth - 1, cache)
+            case _ => depthRecursion(stone * 2024L, depth - 1, cache)
           }
-          val updatedCache = updateCache(subCache, number, depth, result)
+          val updatedCache = updateCache(subCache, stone, depth, result)
           (result, updatedCache)
       }
     }
