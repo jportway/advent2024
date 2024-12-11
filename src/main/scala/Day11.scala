@@ -13,16 +13,10 @@ object Day11 {
       cached match {
         case Some(count) => (count, cache)
         case None =>
-          val (result, subCache) = if (number == 0) {
-            depthRecursion(1L, depth - 1, cache)
-          } else {
-            val str = number.toString
-            val len = str.length
-            if (len % 2 == 0) {
-              stringSpiit(depth, cache, str, len)
-            } else {
-              depthRecursion(number * 2024L, depth - 1, cache)
-            }
+          val (result, subCache) = number match {
+            case 0 => depthRecursion(1L, depth - 1, cache)
+            case n if n.toString.length % 2 == 0 => stringSplit(n, depth, cache)
+            case _ => depthRecursion(number * 2024L, depth - 1, cache)
           }
           val updatedCache = updateCache(subCache, number, depth, result)
           (result, updatedCache)
@@ -30,8 +24,9 @@ object Day11 {
     }
   }
 
-  inline def stringSpiit(depth: Depth, cache: Cache, str: String, len: Depth): (StoneCount, Cache) = {
-    val (as, bs)             = str.splitAt(len / 2)
+  inline def stringSplit(stone: Stone, depth: Depth, cache: Cache): (StoneCount, Cache) = {
+    val str                  = stone.toString
+    val (as, bs)             = str.splitAt(str.length / 2)
     val (a, b)               = (as.toLong, bs.toLong)
     val (resultA, subCacheA) = depthRecursion(a, depth - 1, cache)
     val (resultB, subCacheB) = depthRecursion(b, depth - 1, subCacheA)
@@ -39,10 +34,10 @@ object Day11 {
     (totalResult, subCacheB)
   }
 
-  def updateCache(cache: Cache, stone: Stone, depth: Depth, count: StoneCount) = {
-    if (stone < 30000 && depth > 2) {
+  inline def updateCache(cache: Cache, stone: Stone, depth: Depth, count: StoneCount) = {
+    if (stone < 20000 && depth > 4)
       cache + ((stone, depth) -> count)
-    } else {
+    else {
       cache
     }
   }
