@@ -53,7 +53,8 @@ object Day10 {
       case b: Branch => b.children.flatMap(findEndpoints)
     }
 
-  def score(paths: Seq[Path]): Int = paths.map(x => findEndpoints(x).distinct.length).sum
+  def scoreA(paths: Seq[Path]): Int = paths.map(x => findEndpoints(x).distinct.length).sum
+  def scoreB(paths: Seq[Path]): Int = paths.map(x => findEndpoints(x).length).sum
 
   def findAllPaths(mat: TextMatrix): Seq[Path] = {
     val startPoints = mat.find(_ == '0')
@@ -62,10 +63,12 @@ object Day10 {
 
   @main
   def Day10main(): Unit =
-    val paths = findAllPaths(loadMap(os.pwd / "input" / "day10test.txt"))
-    assert(score(paths) == 36)
+    val testPaths = findAllPaths(loadMap(os.pwd / "input" / "day10test.txt"))
+    assert(scoreA(testPaths) == 36)
+    assert(scoreB(testPaths) == 81)
 
-    val pathsA = findAllPaths(loadMap(os.pwd / "input" / "day10.txt"))
-    println(s"part A : ${score(pathsA)}")
+    val paths = findAllPaths(loadMap(os.pwd / "input" / "day10.txt"))
+    println(s"part A : ${scoreA(paths)}")
+    println(s"part B : ${scoreB(paths)}")
 
 }
