@@ -11,7 +11,7 @@ object Day6 {
 
   given ec: scala.concurrent.ExecutionContext = scala.concurrent.ExecutionContext.global
 
-  val in       = TextMatrix(os.read.lines(os.pwd / "input" / "day6.txt"))
+  val in       = TextMatrix.fromStrings(os.read.lines(os.pwd / "input" / "day6.txt"))
   val startPos = in.find(_ == '^').head
 
   @main

@@ -1,6 +1,7 @@
 package stain
 
 import scala.annotation.targetName
+import scala.collection.immutable.WrappedString
 
 trait Position {
 
@@ -49,7 +50,11 @@ case class AbstractPosition(x: Int, y: Int) extends Position {
 
 }
 
-case class TextMatrix(contents: IndexedSeq[String]) {
+abstract class SpacialMatrix[C <: SpacialMatrix[C, T], T] {
+
+  def contents: IndexedSeq[IndexedSeq[T]]
+  // subclasses implement this to create a copy of themselves with the given contents
+  protected def copyWithContents(contents: IndexedSeq[IndexedSeq[T]]): C
 
   /** either an InvalidLocation or ValidLocation */
   abstract class Cell extends Position {
@@ -58,15 +63,15 @@ case class TextMatrix(contents: IndexedSeq[String]) {
 
     def toOption: Option[ValidCell]
 
-    def content: Option[Char] // the contents of the cell, if it's valid
+    def content: Option[T] // the contents of the cell, if it's valid
 
-    def contains(test: Char) = content.contains(test)
+    def contains(test: T) = content.contains(test)
 
     @targetName("addDirection")
-    override def +(direction: Direction): Cell = TextMatrix.this(x + direction.x, y + direction.y)
+    override def +(direction: Direction): Cell = SpacialMatrix.this(x + direction.x, y + direction.y)
 
     @targetName("subDirection")
-    override def -(direction: Direction): Cell = TextMatrix.this(x - direction.x, y - direction.y)
+    override def -(direction: Direction): Cell = SpacialMatrix.this(x - direction.x, y - direction.y)
 
     override def cardinalNeighbours: Vector[Cell] = Direction.cardinals.map(this + _)
 
@@ -77,28 +82,28 @@ case class TextMatrix(contents: IndexedSeq[String]) {
   }
 
   /** a location that isn't within the bounds of the matrix */
-  case class InvalidCell private[TextMatrix] (x: Int, y: Int) extends Cell {
+  case class InvalidCell private[SpacialMatrix] (x: Int, y: Int) extends Cell {
 
     override def isValid = false
 
     override def toOption: Option[ValidCell] = None
 
-    override def content: Option[Char] = None
+    override def content: Option[T] = None
 
   }
 
   /** a location that is within the bounds of the matrix */
-  case class ValidCell private[TextMatrix] (x: Int, y: Int) extends Cell {
+  case class ValidCell private[SpacialMatrix] (x: Int, y: Int) extends Cell {
 
     override def isValid = true
 
     override def toOption: Option[ValidCell] = Some(this)
 
-    override def content: Option[Char] = Some(contents(y)(x))
+    override def content: Option[T] = Some(contents(y)(x))
 
-    def value: Char = contents(y)(x)
+    def value: T = contents(y)(x)
 
-    def set(value: Char): TextMatrix = TextMatrix(contents.updated(y, contents(y).updated(x, value)))
+    def set(value: T): C = copyWithContents(contents.updated(y, contents(y).updated(x, value)))
 
   }
 
@@ -120,29 +125,42 @@ case class TextMatrix(contents: IndexedSeq[String]) {
     } yield ValidCell(j, i)
   }
 
-  def contents(x: Int, y: Int): Char = contents(y)(x)
+  def contents(x: Int, y: Int): T = contents(y)(x)
 
-  def update(x: Int, y: Int, value: Char): TextMatrix = TextMatrix(contents.updated(y, contents(y).updated(x, value)))
-  def update(pos: Position, value: Char): TextMatrix  = update(pos.x, pos.y, value)
-  def update(values: List[(Position, Char)]): TextMatrix = values.foldLeft(this) { case (acc, (pos, value)) =>
+  def update(x: Int, y: Int, value: T): C = copyWithContents(contents.updated(y, contents(y).updated(x, value)))
+  def update(pos: Position, value: T): C  = update(pos.x, pos.y, value)
+  def update(values: List[(Position, T)]): C = values.foldLeft(this.asInstanceOf[C]) { case (acc: C, (pos, value)) =>
     acc.update(pos, value)
   }
 
   /** checks if the character at the given location matches the given character will always return false if the location
     * is invalid
     */
-  def matchChar(pos: Position, toMatch: Char): Boolean = valid(pos) && (contents(pos.x, pos.y) == toMatch)
+  def matchVal(pos: Position, toMatch: T): Boolean = valid(pos) && (contents(pos.x, pos.y) == toMatch)
+
+  def find(test: T => Boolean): Seq[ValidCell] = locations.filter(loc => test(loc.value))
+
+}
+
+case class TextMatrix(contents: IndexedSeq[IndexedSeq[Char]]) extends SpacialMatrix[TextMatrix, Char] {
+
+  override def copyWithContents(newContents: IndexedSeq[IndexedSeq[Char]]): TextMatrix =
+    this.copy(contents = newContents.toVector)
 
   /** check for a string starting from a particular location in a particular direction */
   def stringCheck(searchString: String, currentPos: Position, direction: Direction): Boolean = {
     if searchString.isEmpty then true
     else {
-      val matched = matchChar(currentPos, searchString.head)
+      val matched = matchVal(currentPos, searchString.head)
       if matched then stringCheck(searchString.tail, currentPos + direction, direction)
       else false
     }
   }
 
-  def find(test: Char => Boolean): Seq[ValidCell] = locations.filter(loc => test(loc.value))
+}
+
+object TextMatrix {
+
+  def fromStrings(content: IndexedSeq[String]) = new TextMatrix(content.map(_.toVector))
 
 }

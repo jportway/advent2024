@@ -28,7 +28,7 @@ object Day10 {
 
   def loadMap(path: os.Path): TextMatrix = {
     val str    = os.read.lines(path)
-    val matrix = TextMatrix(str)
+    val matrix = TextMatrix.fromStrings(str)
     matrix
   }
 

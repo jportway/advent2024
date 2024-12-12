@@ -14,7 +14,7 @@ object Day4 {
       acc + numFound
     }
 
-    val in = TextMatrix(os.read.lines(os.pwd / "input" / "day4.txt"))
+    val in = TextMatrix.fromStrings(os.read.lines(os.pwd / "input" / "day4.txt"))
 
     println(s"number of XMAS : ${findWords(in, "XMAS")}")
 

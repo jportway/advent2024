@@ -3,7 +3,7 @@ import stain.TextMatrix
 
 object Day8 {
 
-  val ta = TextMatrix.apply(os.read.lines(os.pwd / "input" / "day8.txt"))
+  val ta = TextMatrix.fromStrings(os.read.lines(os.pwd / "input" / "day8.txt"))
 
   val freqs = ta.locations.map(_.content).filterNot(_.contains('.')).map(_.get).distinct.toList
 
