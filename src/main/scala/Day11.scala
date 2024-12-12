@@ -4,23 +4,43 @@ object Day11 {
   type Stone      = Long
   type StoneCount = Long
 
-  type Cache = Map[(Stone, Depth), StoneCount]
+  case class Cache(depthSize: Int, stoneSize: Int, private val depthCaches: Vector[Vector[StoneCount]]) {
+
+    def getOrUpdate(depth: Depth, stone: Stone)(updateFunc: (Cache) => (StoneCount, Cache)): (StoneCount, Cache) = {
+      if depth == 0 then (1L, this)
+      else {
+        val stoneIndex = stone.toInt
+        if (stone.isValidInt & stoneIndex < stoneSize) {
+          val cached = depthCaches(depth)(stoneIndex)
+          if cached > 0 then (cached, this)
+          else {
+            val (calculatedVal, newCache) = updateFunc(this)
+            val depthRow                  = depthCaches(depth).updated(stoneIndex, calculatedVal)
+            val newDepthCache             = newCache.depthCaches.updated(depth, depthRow)
+            (calculatedVal, Cache(depthSize, stoneSize, newDepthCache))
+          }
+        } else { // out of range for caching
+          updateFunc(this)
+        }
+      }
+    }
+
+  }
+
+  object Cache {
+
+    def apply(depthSize: Int, stoneSize: Int): Cache = {
+      val depthCaches = Vector.fill(depthSize + 1)(Vector.fill(stoneSize + 1)(0L))
+      new Cache(depthSize, stoneSize, depthCaches)
+    }
+
+  }
 
   def depthRecursion(stone: Stone, depth: Depth, cache: Cache): (StoneCount, Cache) = {
-    if (depth == 0) (1L, cache)
-    else {
-      val cached = cache.get((stone, depth))
-      cached match {
-        case Some(count) => (count, cache)
-        case None =>
-          val (result, subCache) = stone match {
-            case 0 => depthRecursion(1L, depth - 1, cache)
-            case n if n.toString.length % 2 == 0 => stringSplit(n, depth, cache)
-            case _ => depthRecursion(stone * 2024L, depth - 1, cache)
-          }
-          val updatedCache = updateCache(subCache, stone, depth, result)
-          (result, updatedCache)
-      }
+    cache.getOrUpdate(depth, stone) { cache =>
+      if stone == 0 then depthRecursion(1L, depth - 1, cache)
+      else if stone.toString.length % 2 == 0 then stringSplit(stone, depth, cache)
+      else depthRecursion(stone * 2024L, depth - 1, cache)
     }
   }
 
@@ -34,14 +54,6 @@ object Day11 {
     (totalResult, subCacheB)
   }
 
-  inline def updateCache(cache: Cache, stone: Stone, depth: Depth, count: StoneCount) = {
-    if (stone < 20000 && depth > 4)
-      cache + ((stone, depth) -> count)
-    else {
-      cache
-    }
-  }
-
   def calcWithCache(input: List[Stone], depth: Depth, cache: Cache): (StoneCount, Cache) = {
     input.foldLeft((0L, cache)) { case ((acc, cache), i) =>
       val (result, newCache) = depthRecursion(i, depth, cache)
@@ -52,7 +64,7 @@ object Day11 {
   @main
   def Day11Main(): Unit = {
     val testIn             = List(125L, 17L)
-    val (result, newCache) = calcWithCache(testIn, 25, Map.empty)
+    val (result, newCache) = calcWithCache(testIn, 25, Cache.apply(75, 6000))
     println(result)
 
     val input = List(7725L, 185L, 2L, 132869L, 0L, 1840437L, 62L, 26310L)
