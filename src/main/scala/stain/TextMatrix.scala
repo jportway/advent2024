@@ -19,6 +19,10 @@ case class TextMatrix(contents: IndexedSeq[IndexedSeq[Char]]) extends SpacialMat
 
 object TextMatrix {
 
+  type TextCell        = TextMatrix#Cell
+  type ValidTextCell   = TextMatrix#ValidCell
+  type InvalidTextCell = TextMatrix#InvalidCell
+
   def fromStrings(content: IndexedSeq[String]) = new TextMatrix(content.map(_.toVector))
 
 }
