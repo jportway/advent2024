@@ -47,30 +47,6 @@ object Day13 {
       }
       .toList
 
-    // (x * A)+( y * B) = T
-    // (y*B) = T-(x*A)
-    // y = (T-(x*A))/B
-    def solve(problem: Problem): Seq[(Long, Long)] = {
-      import problem.*
-      val xStep = target / buttonA
-      for {
-        x        <- 0L to xStep
-        remaining = target - (buttonA * x)
-        if remaining.modZero(buttonB)
-        y = remaining / buttonB
-      } yield (x, y)
-    }
-
-    @tailrec
-    def gcd(a: Long, b: Long): Long =
-      if (b == 0) a else gcd(b, a % b)
-
-    def canSumToTarget(a: Long, b: Long, t: Long): Boolean = {
-      val g = gcd(a, b)
-      t % g == 0
-    }
-
-    // if
     def findSolution(problem: Problem): Option[(Long, Long)] = {
       import problem.*
       val det = buttonA.x * buttonB.y - buttonA.y * buttonB.x
@@ -92,12 +68,13 @@ object Day13 {
     }
 
     val solutions = problems.map(findSolution)
-    val cost = solutions.collect { case Some(x) => x._1 * 3 + x._2 }.sum
+    val cost      = solutions.collect { case Some(x) => x._1 * 3 + x._2 }.sum
     println(cost)
 
-    val partBProblems = problems.map(p => p.copy(target = LongVec(p.target.x + 10000000000000L, p.target.y + 10000000000000L)))
+    val partBProblems =
+      problems.map(p => p.copy(target = LongVec(p.target.x + 10000000000000L, p.target.y + 10000000000000L)))
     val solutionsB = partBProblems.map(findSolution)
-    val costB = solutionsB.collect { case Some(x) => x._1 * 3 + x._2 }.sum
+    val costB      = solutionsB.collect { case Some(x) => x._1 * 3 + x._2 }.sum
     println(costB)
   }
 
