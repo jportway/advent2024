@@ -2,38 +2,40 @@ import stain.AbstractPosition
 import stain.Direction
 import stain.Position
 
+import scala.annotation.tailrec
 import scala.annotation.targetName
 import scala.util.matching.Regex
 
 object Day13 {
 
-  case class LongVec(stepX:Long, stepY:Long) {
+  case class LongVec(x: Long, y: Long) {
+
     @targetName("mult")
-    def *(scalar:Long): LongVec = LongVec(stepX*scalar,stepY*scalar)
+    def *(scalar: Long): LongVec = LongVec(x * scalar, y * scalar)
 
     @targetName("sub")
-    def -(other:LongVec): LongVec = LongVec(stepX-other.stepX,stepY-other.stepY)
+    def -(other: LongVec): LongVec = LongVec(x - other.x, y - other.y)
 
     @targetName("scalarDiv")
-    def /(scalar:Long): LongVec = LongVec(stepX/scalar,stepY/scalar)
+    def /(scalar: Long): LongVec = LongVec(x / scalar, y / scalar)
 
     @targetName("div")
-    def /(other:LongVec):Long = {
-      val xDiv = stepX/other.stepX
-      val yDiv = stepY/other.stepY
-      Math.min(xDiv,yDiv)
+    def /(other: LongVec): Long = {
+      val xDiv = x / other.x
+      val yDiv = y / other.y
+      Math.min(xDiv, yDiv)
     }
 
-    def modZero(other:LongVec):Boolean = {
-      (stepX % other.stepX == 0) & (stepY % other.stepY == 0)
-    }
+    def modZero(other: LongVec): Boolean =
+      (x % other.x == 0) & (y % other.y == 0)
+
   }
 
   case class Problem(buttonA: LongVec, buttonB: LongVec, target: LongVec)
 
   @main
   def day13Main(): Unit = {
-    val file  = os.read(os.pwd / "input" / "day13test.txt")
+    val file  = os.read(os.pwd / "input" / "day13.txt")
     val regex = "Button A\\: X\\+(\\d+), Y\\+(\\d+)\\nButton B\\: X\\+(\\d+), Y\\+(\\d+)\\nPrize: X=(\\d+), Y=(\\d+)".r
     val problems = regex
       .findAllMatchIn(file)
@@ -48,25 +50,55 @@ object Day13 {
     // (x * A)+( y * B) = T
     // (y*B) = T-(x*A)
     // y = (T-(x*A))/B
-    def solve(problem:Problem): Seq[(Long, Long)] = {
-      val target = problem.target
-      val a = problem.buttonA
-      val b = problem.buttonB
-      val xStep = (target / a)
-      for{
-        x <- 0L to xStep
-        remaining = target-(a * x)
-        if remaining.modZero(b)
-        y = remaining / b
-      } yield (x,y)
+    def solve(problem: Problem): Seq[(Long, Long)] = {
+      import problem.*
+      val xStep = target / buttonA
+      for {
+        x        <- 0L to xStep
+        remaining = target - (buttonA * x)
+        if remaining.modZero(buttonB)
+        y = remaining / buttonB
+      } yield (x, y)
     }
 
-    problems.foreach{ problem =>
-      println(solve(problem))
+    @tailrec
+    def gcd(a: Long, b: Long): Long =
+      if (b == 0) a else gcd(b, a % b)
+
+    def canSumToTarget(a: Long, b: Long, t: Long): Boolean = {
+      val g = gcd(a, b)
+      t % g == 0
     }
 
-//    val partBProblems = problems.map(p => p.copy(target = Position(p.target.x + 10000000000000, p.target.y + 10000000000000)))
+    // if
+    def findSolution(problem: Problem): Option[(Long, Long)] = {
+      import problem.*
+      val det = buttonA.x * buttonB.y - buttonA.y * buttonB.x
+      if (det == 0) {                          // vectors are colinear
+        Option.when(target.modZero(buttonA)) { // None if we can't reach the target
+          val a = target / buttonA
+          val b = target / buttonB
+          if (a * 3 < b) (a, 0) else (0, b)
+        }
+      } else {
+        val xTop   = target.x * buttonB.y - target.y * buttonB.x
+        val xValid = xTop % det == 0 // if not 0 then doesn't fit exactly
+        val x      = xTop / det
+        val yTop   = target.y * buttonA.x - target.x * buttonA.y
+        val yValid = yTop % det == 0 // if not 0 then doesn't fit exactly
+        val y      = yTop / det
+        Option.when(xValid & yValid)((x, y))
+      }
+    }
 
+    val solutions = problems.map(findSolution)
+    val cost = solutions.collect { case Some(x) => x._1 * 3 + x._2 }.sum
+    println(cost)
+
+    val partBProblems = problems.map(p => p.copy(target = LongVec(p.target.x + 10000000000000L, p.target.y + 10000000000000L)))
+    val solutionsB = partBProblems.map(findSolution)
+    val costB = solutionsB.collect { case Some(x) => x._1 * 3 + x._2 }.sum
+    println(costB)
   }
 
 }
