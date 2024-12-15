@@ -7,9 +7,10 @@ case class Direction(x: Int, y: Int) {
 
   @targetName("addDirection")
   def +(other: Direction): Direction = Direction(x + other.x, y + other.y)
-
-  def opposite: Direction = Direction(-x, -y)
-  def unary_- : Direction = opposite
+  @targetName("multDirection")
+  def *(scalar: Int): Direction = Direction(x * scalar, y * scalar)
+  def opposite: Direction       = Direction(-x, -y)
+  def unary_- : Direction       = opposite
 
   def turnRight: Direction = Direction(-y, x)
   def turnLeft: Direction  = Direction(y, -x)
