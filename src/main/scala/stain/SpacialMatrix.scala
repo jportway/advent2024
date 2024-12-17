@@ -22,6 +22,8 @@ abstract class SpacialMatrix[C <: SpacialMatrix[C, T], T] {
 
     def toOption: Option[ValidCell]
 
+    def getValid: ValidCell // if you're *SURE* you can iuse this but it may throw
+
     def content: Option[T] // the contents of the cell, if it's valid
 
     def contains(test: T) = content.contains(test)
@@ -45,6 +47,8 @@ abstract class SpacialMatrix[C <: SpacialMatrix[C, T], T] {
 
     override def isValid = false
 
+    override def getValid: ValidCell = throw new IllegalStateException("attempting to getValid on invalid cell")
+
     override def toOption: Option[ValidCell] = None
 
     override def content: Option[T] = None
@@ -57,6 +61,8 @@ abstract class SpacialMatrix[C <: SpacialMatrix[C, T], T] {
     override def isValid = true
 
     override def toOption: Option[ValidCell] = Some(this)
+
+    override def getValid: ValidCell = this
 
     override def content: Option[T] = Some(contents(y)(x))
 
