@@ -83,9 +83,7 @@ object Day14 {
     val robots    = parse(os.read(os.pwd / "input" / "day14.txt"))
     val arena     = Arena(101, 103, robots.toSet)
     val afterMove = arena.moveRobots(100)
-    println(afterMove.robots)
-    val counts = afterMove.quadrantCounts
-    counts.foreach(println)
+    val counts    = afterMove.quadrantCounts
     println(s"safety factor ${counts.product}")
     (1 to 1000000).foldLeft(arena) { (acc, cur) =>
       val nextArena = acc.moveRobots(1)
