@@ -2,7 +2,9 @@ package stain
 
 import scala.annotation.targetName
 
-trait Position {
+type Position = BasePosition[?]
+
+trait BasePosition[C <: BasePosition[C]] {
 
   def x: Int
 
@@ -30,21 +32,31 @@ trait Position {
 
   def allNeighbours: Vector[Position]
 
+  def copy(x: Int, y: Int): C
+
+  def wrap(width: Int, height: Int): C = {
+    val x0 = ((x % width) + width)   % width
+    val y0 = ((y % height) + height) % height
+    copy(x0, y0)
+  }
+
 }
 
 /** a location that only indicates a position and isn't tied to a particular TextMatrix */
-case class AbstractPosition(x: Int, y: Int) extends Position {
+case class SimplePos(x: Int, y: Int) extends BasePosition[SimplePos] {
 
   @targetName("addDirection")
-  override def +(direction: Direction): AbstractPosition = AbstractPosition(x + direction.x, y + direction.y)
+  override def +(direction: Direction): SimplePos = SimplePos(x + direction.x, y + direction.y)
 
   @targetName("subDirection")
-  override def -(direction: Direction): AbstractPosition = AbstractPosition(x - direction.x, y - direction.y)
+  override def -(direction: Direction): SimplePos = SimplePos(x - direction.x, y - direction.y)
 
-  override def cardinalNeighbours: Vector[Position] = Direction.cardinals.map(this + _)
+  override def cardinalNeighbours: Vector[SimplePos] = Direction.cardinals.map(this + _)
 
-  override def diagonalNeighbours: Vector[Position] = Direction.diagonals.map(this + _)
+  override def diagonalNeighbours: Vector[SimplePos] = Direction.diagonals.map(this + _)
 
-  override def allNeighbours: Vector[Position] = cardinalNeighbours ++ diagonalNeighbours
+  override def allNeighbours: Vector[SimplePos] = cardinalNeighbours ++ diagonalNeighbours
+
+//  override def copy(x: Int, y: Int): AbstractPosition = AbstractPosition(x, y)
 
 }

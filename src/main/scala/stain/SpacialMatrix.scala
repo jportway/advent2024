@@ -13,8 +13,10 @@ abstract class SpacialMatrix[C <: SpacialMatrix[C, T], T] {
   // subclasses implement this to create a copy of themselves with the given contents
   protected def copyWithContents(newContents: IndexedSeq[IndexedSeq[T]]): C
 
+  type Cell = CellBase[?]
+
   /** either an InvalidLocation or ValidLocation */
-  abstract class Cell extends Position {
+  abstract class CellBase[P <: CellBase[P]] extends BasePosition[P] {
 
     def isValid: Boolean
 
@@ -39,7 +41,7 @@ abstract class SpacialMatrix[C <: SpacialMatrix[C, T], T] {
   }
 
   /** a location that isn't within the bounds of the matrix */
-  case class InvalidCell private[SpacialMatrix] (x: Int, y: Int) extends Cell {
+  case class InvalidCell(x: Int, y: Int) extends CellBase[InvalidCell] {
 
     override def isValid = false
 
@@ -50,7 +52,7 @@ abstract class SpacialMatrix[C <: SpacialMatrix[C, T], T] {
   }
 
   /** a location that is within the bounds of the matrix */
-  case class ValidCell private[SpacialMatrix] (x: Int, y: Int) extends Cell {
+  case class ValidCell(x: Int, y: Int) extends CellBase[ValidCell] {
 
     override def isValid = true
 
@@ -64,9 +66,9 @@ abstract class SpacialMatrix[C <: SpacialMatrix[C, T], T] {
 
   }
 
-  def apply(x: Int, y: Int): Cell = if (valid(x, y)) ValidCell(x, y) else InvalidCell(x, y)
+  def apply(x: Int, y: Int): CellBase[?] = if (valid(x, y)) ValidCell(x, y) else InvalidCell(x, y)
 
-  def apply(pos: Position): Cell = pos match {
+  def apply(pos: Position): CellBase[?] = pos match {
     case c: Cell     => c // it's already attached to this matrix
     case l: Position => this(l.x, l.y)
   }

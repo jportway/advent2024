@@ -1,4 +1,4 @@
-import stain.AbstractPosition
+import stain.SimplePos
 import stain.Direction
 import stain.Position
 

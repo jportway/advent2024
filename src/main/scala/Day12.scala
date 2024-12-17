@@ -45,7 +45,7 @@ object Day12 {
   }
 
   def findRegions(matrix: TextMatrix): Seq[CropRegion] = {
-    val regs = matrix.connectedRegions(Direction.cardinals)((cell, fromCell, _) => cell.value == fromCell.value)
+    val regs: Seq[matrix.Region] = matrix.connectedRegions(Direction.cardinals)((cell, fromCell, _) => cell.value == fromCell.value)
     regs.map(reg => CropRegion(reg.head.value, reg.toSet))
   }
 

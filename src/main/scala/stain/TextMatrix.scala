@@ -19,7 +19,7 @@ case class TextMatrix(contents: IndexedSeq[IndexedSeq[Char]]) extends SpacialMat
 
 object TextMatrix {
 
-  type TextCell        = TextMatrix#Cell
+  type TextCell        = TextMatrix#CellBase[?]
   type ValidTextCell   = TextMatrix#ValidCell
   type InvalidTextCell = TextMatrix#InvalidCell
 
