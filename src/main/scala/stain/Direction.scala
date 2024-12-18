@@ -1,6 +1,7 @@
 package stain
 
 import scala.annotation.targetName
+import scala.math.sqrt
 
 /** represents a direction within a TextMatrix */
 case class Direction(x: Int, y: Int) {
@@ -14,6 +15,8 @@ case class Direction(x: Int, y: Int) {
 
   def turnRight: Direction = Direction(-y, x)
   def turnLeft: Direction  = Direction(y, -x)
+  
+  def size = sqrt((x*x)+(y*y))
 
 }
 
