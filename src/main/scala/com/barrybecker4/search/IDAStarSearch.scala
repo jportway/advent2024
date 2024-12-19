@@ -114,7 +114,7 @@ class IDAStarSearch[S, T](val searchSpace: SearchSpace[S, T]) extends ISearcher[
     transitions.foreach(trans => {
       val nbr: S = searchSpace.transition(currentState, trans)
       if (!currentNode.containsStateInPath(nbr)) {
-        val transitionCost = searchSpace.getCost(trans)
+        val transitionCost = searchSpace.getCost(nbr,trans)
         val pathCost = currentNode.pathCost + transitionCost
         val estRemainingCost: Int = searchSpace.distanceFromGoal(nbr)
         val node = new Node[S, T](nbr, Some(trans), Some(currentNode), pathCost, pathCost + estRemainingCost)

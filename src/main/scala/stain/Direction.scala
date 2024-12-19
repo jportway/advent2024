@@ -15,8 +15,8 @@ case class Direction(x: Int, y: Int) {
 
   def turnRight: Direction = Direction(-y, x)
   def turnLeft: Direction  = Direction(y, -x)
-  
-  def size = sqrt((x*x)+(y*y))
+
+  def size = sqrt((x * x) + (y * y))
 
 }
 
@@ -33,5 +33,17 @@ object Direction {
   val cardinals: Vector[Direction]     = Vector(up, down, left, right)
   val diagonals: Vector[Direction]     = Vector(upLeft, upRight, downLeft, downRight)
   val allDirections: Vector[Direction] = cardinals ++ diagonals
+
+  /** return a unicode arrow representing the direction if it's a simple cardinal or diagonal direction */
+  def char(dir: Direction): Char = dir match {
+    case Direction.right     => '→'
+    case Direction.left      => '←'
+    case Direction.up        => '↑'
+    case Direction.down      => '↓'
+    case Direction.upLeft    => '↖'
+    case Direction.upRight   => '↗'
+    case Direction.downLeft  => '↙'
+    case Direction.downRight => '↘'
+  }
 
 }
