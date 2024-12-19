@@ -109,7 +109,7 @@ abstract class SpacialMatrix[C <: SpacialMatrix[C, T], T] {
 
   def update(x: Int, y: Int, value: T): C = copyWithContents(contents.updated(y, contents(y).updated(x, value)))
   def update(pos: Position, value: T): C  = update(pos.x, pos.y, value)
-  def update(values: List[(Position, T)]): C = values.foldLeft(this.asInstanceOf[C]) { case (acc: C, (pos, value)) =>
+  def update(values: Seq[(Position, T)]): C = values.foldLeft(this.asInstanceOf[C]) { case (acc: C, (pos, value)) =>
     acc.update(pos, value)
   }
 
