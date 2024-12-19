@@ -17,43 +17,38 @@ object Day18 {
     def findPath(terrain: TextMatrix): Option[Seq[Direction]] = {
       import terrain.*
 
-      case class State(pos: ValidCell, heading: Direction) {
-        def +(move: Direction): State = State((pos + move).getValid, move)
-      }
+      class MazeSearch(initialState: ValidCell, goalPos: ValidCell)
+          extends AbstractSearchSpace[ValidCell, Direction](initialState) {
 
-      class MazeSearch(initialState: State, goalPos: ValidCell)
-          extends AbstractSearchSpace[State, Direction](initialState) {
-
-        override def legalTransitions(state: State): Seq[Direction] = {
+        override def legalTransitions(state: ValidCell): Seq[Direction] = {
           val allowedDirections = Direction.cardinals
           val valid = allowedDirections.filterNot(dir =>
-            val newPos = state.pos + dir
+            val newPos = state + dir
             (!newPos.isValid) | newPos.contains('#')
           )
           valid
         }
 
-        override def getCost(state: State, move: Direction): Int = 1
+        override def getCost(state: ValidCell, move: Direction): Int = 1
 
-        override def isGoal(state: State): Boolean = state.pos == goalPos
+        override def isGoal(state: ValidCell): Boolean = state == goalPos
 
-        // when moving to a new state any existing forbidden move will disappear since that's only for the first move
-        override def transition(state: State, move: Direction): State = state + move
+        override def transition(state: ValidCell, move: Direction): ValidCell = (state + move).getValid
 
-        override def distanceFromGoal(state: State): Int =
-          state.pos.vectorTo(goalPos).size.toInt
+        override def distanceFromGoal(state: ValidCell): Int =
+          state.vectorTo(goalPos).size.toInt
       }
 
-      def viz(path: List[State], map: TextMatrix): String = {
-        val updates = path.map(s => (s.pos, Direction.char(s.heading)))
+      def viz(path: List[ValidCell], map: TextMatrix): String = {
+        val updates = path.map(p => (p, 'O'))
         map.update(updates).viz(c => c)
       }
 
       // ------------
-      val initalState = State(terrain(0, 0).getValid, Direction.down)
+      val initalState = terrain(0, 0).getValid
       val goalPos     = terrain(70, 70).getValid
       val space       = MazeSearch(initalState, goalPos)
-      val search      = new AStarSearch[State, Direction](space)
+      val search      = new AStarSearch[ValidCell, Direction](space)
       search.solve
     }
 
@@ -81,7 +76,7 @@ object Day18 {
         }
       }
       .last
-    
+
     println(s"part B : ${blocks(failsAt)}")
   }
 
