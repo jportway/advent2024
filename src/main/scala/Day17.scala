@@ -98,14 +98,14 @@ object Day17 {
     // and then using the result of that (shifted left 3 bits) as the basis of the search for the next digit etc.
 
     val memory = Vector(2, 4, 1, 3, 7, 5, 4, 7, 0, 3, 1, 5, 5, 5, 3, 0)
-    val (endList, code) = memory.reverse.foldLeft((List.empty[Int], 0L)) { case ((targetAcc, digitAcc), digit) =>
+    val (_, code) = memory.reverse.foldLeft((List.empty[Int], 0L)) { case ((targetAcc, digitAcc), digit) =>
       val newTarget = digit :: targetAcc
       val newDigit  = firstMatch(newTarget, digitAcc * 8)
       (newTarget, newDigit)
     }
     val verifyState = State(memory, 0, code, 0, 0)
     assert(run(verifyState).toList == memory) // verify it with the original program
-    println(code)
+    println(s"part B:$code")
   }
 
   def firstMatch(target: List[Int], start: Long) = {
@@ -119,7 +119,6 @@ object Day17 {
 
   // faster version of code
   def calcDigits(startA: Long): List[Int] = {
-    // B = A % 8 -- first 3 bits of a
     List.unfold(startA) { a =>
       if a == 0 then None
       else {
