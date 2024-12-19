@@ -4,13 +4,10 @@ object Day17 {
 
   def readCombo(operand: Int, state: State): Long = {
     operand match {
-      case 0 => 0
-      case 1 => 1
-      case 2 => 2
-      case 3 => 3
-      case 4 => state.a
-      case 5 => state.b
-      case 6 => state.c
+      case 0 | 1 | 2 | 3 => operand
+      case 4             => state.a
+      case 5             => state.b
+      case 6             => state.c
     }
   }
 
