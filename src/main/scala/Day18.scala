@@ -61,9 +61,10 @@ object Day18 {
     val path    = findPath(map1024).get
     println(s"part A :${path.size - 1}")
 
+    // Trying very, very hard not to care about optimisation...
     val failsAt = LazyList
       .unfold(1024) { numBlocks =>
-        val falling      = blocks.take(numBlocks).map((_, '#')).toSeq
+        val falling      = blocks.take(numBlocks).map((_, '#')) 
         val terrain      = empty.update(falling)
         val searchResult = findPath(terrain)
         searchResult match {
