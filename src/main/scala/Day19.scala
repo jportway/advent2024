@@ -29,8 +29,6 @@ object Day19 {
   def day19Main(): Unit = {
     val in                 = os.pwd / "input" / "day19.txt"
     val (towels, patterns) = parse(os.read.lines(in))
-    println(towels)
-    println(patterns)
 
     val results = patterns.map { pattern =>
       val space  = SearchSpace(pattern, towels)
