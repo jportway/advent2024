@@ -1,5 +1,4 @@
 import com.barrybecker4.search.AStarSearch
-import com.barrybecker4.search.IDAStarSearch
 import com.barrybecker4.search.space.AbstractSearchSpace
 import com.barrybecker4.search.space.SearchSpace
 import stain.Direction

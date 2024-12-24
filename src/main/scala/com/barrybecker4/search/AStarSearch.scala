@@ -108,10 +108,16 @@ class AStarSearch[S, T](
     }
     visited += (currentState -> currentNode)
     val transitions: Seq[T] = searchSpace.legalTransitions(currentState)
-
+    val prequelPath = List
+      .unfold(Option(currentNode)) {
+        case Some(current) => Some((current.state, current.previous))
+        case None          => None
+      }
+      .reverse
     for (transition <- transitions) {
-      val nbr: S = searchSpace.transition(currentState, transition)
-      if (!visited.contains(nbr)) {
+      val nbr: S    = searchSpace.transition(currentState, transition)
+      val legalPath = searchSpace.legalPath(prequelPath.appended(nbr))
+      if (!visited.contains(nbr) & legalPath) {
         val transitionCost   = searchSpace.getCost(currentState, transition)
         val actPathCost: Int = pathCost(currentState) + transitionCost
         if (!pathCost.contains(nbr) || actPathCost < pathCost(nbr)) {

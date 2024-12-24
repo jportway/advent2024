@@ -3,11 +3,10 @@ package com.barrybecker4.search.space
 
 import scala.collection.mutable
 
-/**
-  * Describes the search space.
-  * S represents a state within the search space
-  * T represents a transition from one state to another
-  * @author Barry Becker
+/** Describes the search space. S represents a state within the search space T represents a transition from one state to
+  * another
+  * @author
+  *   Barry Becker
   */
 abstract class AbstractSearchSpace[S, T](val initialState: S) extends SearchSpace[S, T] {
 
@@ -27,4 +26,5 @@ abstract class AbstractSearchSpace[S, T](val initialState: S) extends SearchSpac
   }
 
   override def animateTransition(trans: T): S = this.transition(initialState, trans)
+
 }

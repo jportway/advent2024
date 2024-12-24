@@ -20,10 +20,17 @@ trait SearchSpace[S, T] extends Refreshable[S, T] {
 
   /** Try to produce this list efficiently, and try to have the most promising transitions first.
     *
+    * @param state
+    *   : the current state
+    * @param path
+    *   : Access to the entire path to this state, if required
     * @return
     *   a list of legal next immutable transitions.
     */
   def legalTransitions(state: S): Seq[T]
+
+  /** allows the space to cull a path that it disallows as a whole */
+  def legalPath(path: Seq[S]): Boolean = true
 
   /** @return the state (immutable) that you get after applying the specified transition. */
   def transition(state: S, transition: T): S
