@@ -26,7 +26,7 @@ object Day16 {
     ) {
 
       def +(move: Direction): State =
-        State((pos + move).getValid, move)
+        State((pos + move).assertValid, move)
 
     }
 

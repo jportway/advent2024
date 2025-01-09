@@ -1,6 +1,8 @@
 package stain
 
 import scala.annotation.targetName
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.reflect.ClassTag
 
 abstract class SpacialMatrix[C <: SpacialMatrix[C, T], T] {
 
@@ -22,7 +24,7 @@ abstract class SpacialMatrix[C <: SpacialMatrix[C, T], T] {
 
     def toOption: Option[ValidCell]
 
-    def getValid: ValidCell // if you're *SURE* you can iuse this but it may throw
+    def assertValid: ValidCell // if you're *SURE* a cell is valid this will give you a valid cell, but will throw otherwise
 
     def content: Option[T] // the contents of the cell, if it's valid
 
@@ -47,7 +49,7 @@ abstract class SpacialMatrix[C <: SpacialMatrix[C, T], T] {
 
     override def isValid = false
 
-    override def getValid: ValidCell = throw new IllegalStateException("attempting to getValid on invalid cell")
+    override def assertValid: ValidCell = throw new IllegalStateException("attempting to getValid on invalid cell")
 
     override def toOption: Option[ValidCell] = None
 
@@ -62,7 +64,7 @@ abstract class SpacialMatrix[C <: SpacialMatrix[C, T], T] {
 
     override def toOption: Option[ValidCell] = Some(this)
 
-    override def getValid: ValidCell = this
+    override def assertValid: ValidCell = this
 
     override def content: Option[T] = Some(contents(y)(x))
 
@@ -154,6 +156,29 @@ abstract class SpacialMatrix[C <: SpacialMatrix[C, T], T] {
     SimpleMatrix(mapped)
   }
 
+  /** create a new SpacialMatrix using a function which maps from a location in this matrix to a value this can be used
+    * for functions which want to, for instance, examine the contents of the neighbours of a cell in order to calculate
+    * a transformed value - for instance game of life or something like that
+    */
+  def kernelMap[B: ClassTag](transform: ValidCell => B): SimpleMatrix[B] = {
+    val vec = Vector.tabulate(numRows, numColumns) { case (y, x) =>
+      transform(ValidCell(x, y))
+    }
+    SimpleMatrix(vec)
+  }
+
+  def parKernelMap[B: ClassTag](transform: ValidCell => B)(using ec: ExecutionContext): SimpleMatrix[B] = {
+    val futVec = Vector.tabulate(numRows, numColumns) { case (y, x) =>
+      Future(transform(ValidCell(x, y)))
+    }
+    val futureOfMatrix: Future[Vector[Vector[B]]] =
+      Future.traverse(futVec) { row =>
+        Future.traverse(row)(identity)
+      }
+    val vec = Await.result(futureOfMatrix, scala.concurrent.duration.Duration.Inf)
+    SimpleMatrix(vec)
+  }
+
   /** checks if the character at the given location matches the given character will always return false if the location
     * is invalid
     */
@@ -236,8 +261,8 @@ case class SimpleMatrix[T](contents: IndexedSeq[IndexedSeq[T]]) extends SpacialM
 
 object SimpleMatrix {
 
-  def fill[T](numRows: Int, numColumns: Int)(func: (x: Int, y: Int) => T): SimpleMatrix[T] = {
-    val content = (0 until numRows).map(i => (0 until numColumns).map(j => func(i, j)).toVector).toVector
+  def tabulate[T](numRows: Int, numColumns: Int)(func: (y: Int, x: Int) => T): SimpleMatrix[T] = {
+    val content = Vector.tabulate(numRows, numColumns)(func)
     new SimpleMatrix(content)
   }
 

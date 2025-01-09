@@ -33,7 +33,7 @@ object Day18 {
 
         override def isGoal(state: ValidCell): Boolean = state == goalPos
 
-        override def transition(state: ValidCell, move: Direction): ValidCell = (state + move).getValid
+        override def transition(state: ValidCell, move: Direction): ValidCell = (state + move).assertValid
 
         override def distanceFromGoal(state: ValidCell): Int =
           state.vectorTo(goalPos).size.toInt
@@ -45,8 +45,8 @@ object Day18 {
       }
 
       // ------------
-      val initalState = terrain(0, 0).getValid
-      val goalPos     = terrain(70, 70).getValid
+      val initalState = terrain(0, 0).assertValid
+      val goalPos     = terrain(70, 70).assertValid
       val space       = MazeSearch(initalState, goalPos)
       val search      = new AStarSearch[ValidCell, Direction](space)
       search.solve

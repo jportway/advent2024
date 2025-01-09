@@ -15,14 +15,14 @@ object Day15 {
           case '.' => Some(Set.empty)
           case 'O' => (pos + direction).toOption.flatMap(stackVertical).map(_ + pos)
           case '[' => // in the case of big boxes we have to move the other half of the box too
-            val other = (pos + Direction.right).getValid
-            val a     = stackVertical((pos + direction).getValid).map(_ + pos)
-            val b     = stackVertical((other + direction).getValid).map(_ + other)
+            val other = (pos + Direction.right).assertValid
+            val a     = stackVertical((pos + direction).assertValid).map(_ + pos)
+            val b     = stackVertical((other + direction).assertValid).map(_ + other)
             a.zip(b).map((am, bm) => am ++ bm)
           case ']' =>
-            val other = (pos + Direction.left).getValid
-            val a     = stackVertical((pos + direction).getValid).map(_ + pos)
-            val b     = stackVertical((other + direction).getValid).map(_ + other)
+            val other = (pos + Direction.left).assertValid
+            val a     = stackVertical((pos + direction).assertValid).map(_ + pos)
+            val b     = stackVertical((other + direction).assertValid).map(_ + other)
             a.zip(b).map((am, bm) => am ++ bm)
         }
       }
@@ -35,7 +35,7 @@ object Day15 {
         }
       }
 
-      val newPos = tm(robot + direction).getValid
+      val newPos = tm(robot + direction).assertValid
       val toMove = direction match { // make a list of anything that needs to move
         case Direction.left | Direction.right => stackHorizontal(newPos)
         case Direction.up | Direction.down    => stackVertical(newPos)
@@ -45,7 +45,7 @@ object Day15 {
         case Some(cellsToMove) =>
           val clear        = cellsToMove.toList.map(x => (x, '.'))
           val clearedState = tm.update(clear)            // delete boxes to be moved
-          val redraw       = cellsToMove.toList.map(x => ((x + direction).getValid, x.value))
+          val redraw       = cellsToMove.toList.map(x => ((x + direction).assertValid, x.value))
           val arenaState   = clearedState.update(redraw) // redraw boxes in new position
           copy(arenaState, newPos)
       }
